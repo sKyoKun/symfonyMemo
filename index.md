@@ -6,7 +6,7 @@ As my memory is the same as Dory in "Finding Nemo", it'll help me save time not 
 ## Setting up the project
 
 Let's set up a new Symfony skeleton project 
-```
+```Shell
 composer create-project symfony/skeleton myAPIProject
 ```
 
