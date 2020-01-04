@@ -55,10 +55,10 @@ Then we require the bundles we may have to use in the following list :
 ```
 
 ## Security 
-- Setting up JWT on the project
-- Custom entity provider and firewalls in security.yml
-- Enable login in swagger
-- Add data in JWT after login and retrieve it from the controller
+- [Setting up JWT on the project](security/setting-up-jwt.md)
+- [Custom entity provider and firewalls in security.yml](security/custom-provider.md)
+- [Enable login in swagger](security/login-in-swagger.md)
+- [Add data in JWT after login and retrieve it from the controller](security/add-data-in-jwt.md)
 
 ## Playing with doctrine
 - Create and hydrate an object (not entity) from a database query
