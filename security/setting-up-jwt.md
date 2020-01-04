@@ -1,17 +1,17 @@
 # Setting up JWT
 
 ## Install the bundles 
-```bash
+```Shell
 composer require "lexik/jwt-authentication-bundle"
 ```
 If you need an extra security, you can use the refresh token bundle 
-```bash
+```Shell
 composer "gesdinet/jwt-refresh-token-bundle"
 ```
 
 ## JWT Bundle 
 ### Generate the keys 
-```
+```Shell
 mkdir config/jwt
 openssl genrsa -passout pass:yourpass -out config/jwt/private.pem -aes256 4096
 openssl rsa -passin pass:yourpass -pubout -in config/jwt/private.pem -out config/jwt/public.pem
@@ -87,7 +87,7 @@ gesdinet_jwt_refresh_token:
 ```
 
 ### Update the schema
-```
+```Shell
 php bin/console doctrine:schema:update --force
 
 # or make and run a migration:
