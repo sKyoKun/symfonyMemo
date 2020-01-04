@@ -61,8 +61,8 @@ Then we require the bundles we may have to use in the following list :
 - [Add data in JWT after login and retrieve it from the controller](security/add-data-in-jwt.md)
 
 ## Playing with doctrine
-- Create and hydrate an object (not entity) from a database query
-- Configure doctrine extensions to use advanced SQL commands
+- [Create and hydrate an object (not entity) from a database query](doctrine/hydrate-object-from-query.md)
+- [Configure doctrine extensions to use advanced SQL commands](doctrine/extensions.md)
 
 ## Tests
 - Unit tests
