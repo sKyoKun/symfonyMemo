@@ -6,8 +6,8 @@ code {
     padding: 2px 4px;
     font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
     font-size: 0.9rem;
-    color: $code-text-color;
-    background-color: $code-bg-color;
+    color: #567482;
+    background-color: #f3f6fa;
     border-radius: 0.3rem;
 }
 
@@ -16,17 +16,17 @@ pre {
   margin-top: 0;
   margin-bottom: 1rem;
   font: 1rem Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  color: $code-text-color;
+  color: #567482;
   word-wrap: normal;
-  background-color: $code-bg-color;
-  border: solid 1px $border-color;
+  background-color: #f3f6fa;
+  border: solid 1px #dce6f0;
   border-radius: 0.3rem;
 
   > code {
     padding: 0;
     margin: 0;
     font-size: 0.9rem;
-    color: $code-text-color;
+    color: #567482;
     word-break: normal;
     white-space: pre;
     background: transparent;
