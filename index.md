@@ -65,11 +65,12 @@ Then we require the bundles we may have to use in the following list :
 - [Configure doctrine extensions to use advanced SQL commands](doctrine/extensions.md)
 
 ## Tests
-- Unit tests
+- [Unit tests](test/unit-tests.md)
 - Fixtures with faker
 - Functional tests
-- Testing a repository
+- [Testing a repository](test/test-a-repository.md)
 
 ## Swagger documentation
 - Document the actions
 - Use serialization groups in swagger models
+

@@ -1,7 +1,7 @@
 # Test a repository
 
-Sometimes you want to check that you repository fonction returns the right values. 
-You can test them with fixtures and a repository test : 
+Sometimes you want to check that your repository function returns the right values. 
+You can test them with fixtures (liip/test-fixtures-bundle + hautelook/alice-bundle), and a repository test : 
 
 ```php
 // tests/Repository/UserRepositoryTest.php
@@ -56,7 +56,7 @@ class UserRepositoryTest extends KernelTestCase
             ->getTotalNumberOfUser();
 
         // We test what the result should be
-        $this->assertEquals(2, $nbUsers)
+        $this->assertEquals(2, $nbUsers);
     }
 }
 ```
