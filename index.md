@@ -75,5 +75,5 @@ Then we require the bundles we may have to use in the following list :
 - Use serialization groups in swagger models
 
 ## Others
-- Symfony & SQLServer (with and without doctrine)
+- [Symfony & SQLServer (with and without doctrine)](others/symfony-sql-server.md)
 - [Github actions (CI / CSFIXER)](others/github-actions.md)
