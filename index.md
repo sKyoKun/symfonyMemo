@@ -76,4 +76,4 @@ Then we require the bundles we may have to use in the following list :
 
 ## Others
 - Symfony & SQLServer (with and without doctrine)
-- Github actions (CI / CSFIXER)
+- [Github actions (CI / CSFIXER)](others/github-actions.md)
