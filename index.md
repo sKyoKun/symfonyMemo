@@ -66,11 +66,14 @@ Then we require the bundles we may have to use in the following list :
 
 ## Tests
 - [Unit tests](test/unit-tests.md)
-- Fixtures with faker
-- Functional tests
+- [Fixtures with faker](test/fixtures-with-faker.md)
+- [Functional tests](test/functional-tests.md)
 - [Testing a repository](test/test-a-repository.md)
 
 ## Swagger documentation
 - Document the actions
 - Use serialization groups in swagger models
 
+## Others
+- Symfony & SQLServer (with and without doctrine)
+- Github actions (CI / CSFIXER)
