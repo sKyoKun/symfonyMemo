@@ -67,7 +67,8 @@ Then we require the bundles we may have to use in the following list :
 ## Tests
 - [Unit tests](test/unit-tests.md)
 - [Fixtures with faker](test/fixtures-with-faker.md)
-- [Functional tests](test/functional-tests.md)
+- [Functional tests with Liip functional bundle](test/functional-tests.md)
+- [Functional tests with Behat / French version](test/functional-tests-behat-fr.md)
 - [Testing a repository](test/test-a-repository.md)
 
 ## Swagger documentation
