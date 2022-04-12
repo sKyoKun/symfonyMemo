@@ -144,13 +144,10 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class RequestContext implements Context
 {
-  protected KernelInterface $kernel;
-
   protected Response $response;
 
-  public function __construct(KernelInterface $kernel)
+  public function __construct(protected KernelInterface $kernel)
   {
-    $this->kernel = $kernel;
   }
 
   /**
@@ -216,11 +213,8 @@ use Doctrine\ORM\Tools\SchemaTool;
 
 class DatabaseContext implements Context
 {
-  private EntityManagerInterface $entityManager;
-
-  public function __construct(EntityManagerInterface $entityManager)
+  public function __construct(private EntityManagerInterface $entityManager)
   {
-    $this->entityManager = $entityManager;
   }
 
   /**
@@ -311,9 +305,7 @@ class SystemContext implements Context
     'error' => 400
   ];
 
-  protected KernelInterface $kernel;
-
-  public function __construct(KernelInterface $kernel)
+  public function __construct(protected KernelInterface $kernel)
   {
     $this->kernel = $kernel;
   }
@@ -369,3 +361,247 @@ App\Controller\GameController:
 ```
 
 Ca y est nous avons de quoi tester notre premier endpoint, la récupération de nos jeux. Nous allons maintenant passer à notre 2e endpoint : la création d'un nouveau jeu.
+
+### Test du endpoint de création d'un jeu [POST]
+
+Les différentes valeurs de retour :
+- [200] Renvoie notre jeu de société + envoi de notre message
+- [400] Une valeur n'est pas valide + log
+
+Notre Gherkin ressemblera à ceci :
+```gherkin
+Feature Create a new boardgame
+  In order to create a boardgame
+  As an API user
+  I want to send a JSON message to the API and get the game back
+
+  Scenario: The validation fails
+    When I request http://boardgame.test/ using HTTP method "POST" with body
+    """
+    {
+      "name" : "Ticket to ride Europe",
+      "nbPlayers" : "2-5",
+      "minAge" : "bad age",
+      "year" : 2005,
+      "author" : {
+        "firstname" : "Alan",
+        "lastname" : "Moon"
+      },
+      "category" : {
+        "name" : "strategy"
+      },
+      "mechanics" : [
+          { "name" : "Drafting" },
+          { "name" : "Hand Management" },
+          { "name" : "Network and Route Building" },
+          { "name" : "Set Collection" }
+        ] 
+    }
+    """ 
+    Then the status code must be 400
+    And the response should contain
+      | error[0].field   | minAge                                                               |
+      | error[0].message | value of field should be int, string given   |
+    And the logger should contain a log of type "info" with content "Validation failed : minAge"
+
+  Scenario: The JSON is valid and should be saved to database
+    When I request http://boardgame.test/ using HTTP method "POST" with body
+    """
+    {
+      "name" : "Ticket to ride Europe",
+      "nbPlayers" : "2-5",
+      "minAge" : 7,
+      "year" : 2005,
+      "author" : {
+        "firstname" : "Alan",
+        "lastname" : "Moon"
+      },
+      "category" : {
+        "name" : "strategy"
+      },
+      "mechanics" : [
+          { "name" : "Drafting" },
+          { "name" : "Hand Management" },
+          { "name" : "Network and Route Building" },
+          { "name" : "Set Collection" }
+        ] 
+    }
+    """ 
+    Then the status code must be 200
+    And the response should contain : 
+      | name              | Ticket to ride Europe      |
+      | nbPlayers         | 2-5                        |
+      | minAge            | 7                          |
+      | year              | 2005                       |
+      | author.firstname  | Alan                       |
+      | author.lastname   | Moon                       |
+      | category.name     | strategy                   |
+      | mechanics[0].name | Drafting                   |
+      | mechanics[1].name | Hand Management            |
+      | mechanics[2].name | Network and Route Building |
+      | mechanics[3].name | Set Collection             |
+    And the database should contain my "Ticket to ride Europe" game with values : 
+      | name              | Ticket to ride Europe      |
+      | nbPlayers         | 2-5                        |
+      | minAge            | 7                          |
+      | year              | 2005                       |
+      | author.firstname  | Alan                       |
+      | author.lastname   | Moon                       |
+      | category.name     | strategy                   |
+      | mechanics[0].name | Drafting                   |
+      | mechanics[1].name | Hand Management            |
+      | mechanics[2].name | Network and Route Building |
+      | mechanics[3].name | Set Collection             |
+    And the messenger should contain the following message :
+      | message.id        | 2                          |
+      | message.name      | Ticket to ride Europe      |
+```
+Nous avons déjà vu les valeurs de retour que nous avons déjà précédemment implémentées. Nous n'allons que rajouter ce dont nous avons besoin pour traiter ces nouvelles étapes.
+```php
+// tests/Behat/RequestContext
+
+...
+
+  /**
+   * @When I request :path using HTTP method :method with body
+   */
+  public function iRequestUsingHttpMethod(
+    string $path, 
+    string $method,
+    PyStringNode $body
+    ) : void {
+        $request = Request::create($path, $method, [], [], [], [], $body->getRaw());
+        $this->response = $this->kernel->handle($request);
+
+        // si vous avez des evenements dans le kernel terminate, ne pas oublier ces lignes ;) 
+        Assert::assertInstanceOf(Kernel::class, $this->kernel);
+        $this->kernel->terminate($request, $this->response);
+    }
+
+...
+
+```
+
+```php
+// tests/Behat/SystemContext
+
+...
+
+  public function __construct(
+    private KernelInterface $kernelInterface,
+    private TransportInterface $transport
+    ) {
+  }
+
+  /**
+   * @Then the messenger should contain the following message :
+   */
+  public function theMessengerShouldContainTheFollowingMessage(
+    TableNode $expectedMessageAttributes
+    ): void {
+    /* @var Envelope[] $messagesFromTransport */
+    $messagesFromTransport = $this->transport->get();
+    $messageId = $expectedMessageAttributes->getRowsHash()['message.id'];
+
+    // ici je filtre mes messages grâce à l'ID mais vous pouvez utiliser n'importe quelle valeur unique de votre model
+    $correspondingMessages = array_values(
+      array_filter(
+        $messagesFromTransport, 
+        fn ($enveloppe) => $messageId === $enveloppe->getMessage()->getId();
+      )
+    );
+
+    Assert::assertCount(1, $correspondingMessages);
+    $message = array_shift($correspondingMessages);
+    Assert::assertInstanceOf(Enveloppe::class, $message);
+    $amqpStamp = $message->last(AmqpStamp::class);
+    Assert::assertInstanceOf(AmqpStamp::class, $amqpStamp);
+
+    foreach ($expectedMessageAttributes->getRowsHash() as $name => $value) {
+      // message values
+      if (strstr($name, 'message')) {
+        Assert::assertEquals(
+          $value,
+          (string) $message->getMessage()->{'get' . ucfirst(substr($name, 8))}
+        );
+      }
+      // stamp values (si on rajoute des informations dans les headers AMQP de nos messages, sinon ignorer cette partie)
+      if (strstr($name, 'amqp.')) {
+        // si notre stamp contient des headers
+        if (strstr($name, 'amqp.headers.')) {
+          $headerName = substr($name, 13);
+
+          // on check que le header existe
+          Assert::assertArrayHaskey(
+            $headerName, 
+            $amqpStamp->getAttributes()['headers']
+          );
+
+          // si en plus on veut vérifier sa valeur ...
+          if ('' !== trim($value)) {
+            Assert::assertEquals($value, $amqpStamp->getAttributes()['headers'][$headerName]);
+          } 
+        }else {
+            $attributeName = substr($name, 5);
+
+            Assert::assertArrayHaskey(
+              $attributeName, 
+              $amqpStamp->getAttributes()
+            );
+            if ('' !== trim($value)) {
+            Assert::assertEquals($value, $amqpStamp->getAttributes()[$attributeName]);
+          }
+          }
+        }
+      }
+    }
+  }
+...
+
+```
+
+Configurons notre messenger pour qu'il n'envoie pas de message vers une queue RabbitMQ mais plutot qu'il soit stocké en mémoire
+```yaml
+#config/packages/test/messenger.yaml
+
+framework:
+  messenger:
+    reset_on_message: true
+    transports:
+      game: 'in-memory://'
+```
+
+```yaml
+#config/services_test.yaml
+
+services:
+  App\Tests\Behat\SystemContext:
+    bind:
+      $transport: '@messenger.transport.game'
+    public: true
+```
+
+```php
+// tests/Behat/DatabaseContext
+...
+  /**
+   * @Then the database should contain my :title game with values :
+   */
+  public function theDatabaseShouldContainTitleWithValues(
+    string $title,
+    TableNode $tableNode
+    ): void{
+    
+    $propertyAccessor = PropertyAcces::createPropertyAccessor();
+
+    /** @var Boardgame */
+    $game = $this->boardgameRepository->findOneBy(['name' => $title]);
+
+    foreach ($tableNode->getRowsHash() as $propertyName => $value)
+    {
+        Assert::assertIsString($propertyName);
+        Assert::assertEquals($value, $propertyAccessor->getValue($game, $propertyName));
+    }
+  }
+...
+```
