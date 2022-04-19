@@ -5,9 +5,9 @@
 Pour mes tests fonctionnels API, je ne voulais pas simplement tester les entrées et sorties des rêquetes, mais TOUT le processus incluant : 
 - Les entrées (les différents types de données envoyés)
 - Les sorties (les différents formats, les cas d'erreur)
-- Ce qui doit se trouver dans la base de données après le retour API
-- Ce qui doit se trouver dans les files RabbitMQ (messenger)
-- Ce qui doit se trouver dans les logs 
+- Ce que la BDD doit contenir comme données
+- Ce que les files RabbitMQ (messenger) doivent contenir comme messages
+- Ce que les logs doivent contenir comme messages
 
 Basiquement je veux ~100% de code coverage sur mes controllers API
 
