@@ -1,6 +1,6 @@
 # Tester son API de A à Z grâce à Behat
 
-## Connaitre ce que l'on veut tester
+## [Connaitre ce que l'on veut tester](#connaitre-ce-que-lon-veut-tester)
 
 Pour mes tests fonctionnels API, je ne voulais pas simplement tester les entrées et sorties des rêquetes, mais TOUT le processus incluant : 
 - Les entrées (les différents types de données envoyés)
@@ -11,7 +11,7 @@ Pour mes tests fonctionnels API, je ne voulais pas simplement tester les entrée
 
 Basiquement je veux ~100% de code coverage sur mes controllers API
 
-## Behat
+## [Behat](#behat)
 
 Behat est un framework PHP utilisé pour faire du BDD (Behaviour Driven Development). L'idée est que le métier et les devs partagent un langage commun pour mieux comprendre comment fontionne l'application.
 Behat utilise **Gherkin** comme syntaxe pour ses tests.
@@ -43,14 +43,14 @@ Arborescence des fichiers / De quoi avons nous besoin :
 - Des fichiers ***.feature***. Idéalement un par feature différente a tester (ex : un endpoint). Ces fichiers sont la plupart du temps rangés dans le dossier ***features*** à la racine de votre application.
 - Des fichiers ***context*** qui vous permettront d'implémenter vos "steps" afin qu'ils fassent ce que vous souhaitez. C'est la que la magie opère. La plupart du temps ils se trouvent dans le répertoire ***tests/Behat***. Les fichiers contextes peuvent être mutualisés pour les tâches que vous aurez à répéter dans plusieurs features. Attention cependant, l'ordre dans lequel vous les appelez est important car c'est l'ordre dans lequel ils seront executés. 
 
-## Installation
+## [Installation](#installation)
 
 ```shell
 composer require --dev friends-of-behat/symfony-extension
 composer require --dev dvdoug/behat-code-coverage (non obligatoire)
 ```
 
-## Etude d'un cas concret
+## [Etude d'un cas concret](#etude-dun-cas-concret)
 
 Pour illustrer les propos de cet article, nous allons partir sur un cas concret : une API qui gère les données d'un jeu de société. L'exemple est volontairement simpliste afin de ne pas perdre de temps en explications qui ne concernent pas notre sujet.
 
@@ -63,7 +63,7 @@ Nous allons donc avoir un endpoint qui va renvoyer les données suivantes [GET]:
 
 Et un endpoint qui va sauvegarder ces données en base de données et qui enverra en asynchrone un message pour dire qu'un nouveau jeu a été ajouté [POST].
 
-### Test du endpoint de récupération d'un jeu [GET]
+### [Test du endpoint de récupération d'un jeu (GET)](#test-du-endpoint-de-récupération-dun-jeu-get)
 
 Les différentes valeurs de retour :
 
@@ -105,7 +105,7 @@ App\Controller\GameController:
 
 Ca y est nous avons de quoi tester notre premier endpoint, la récupération de nos jeux. Nous allons maintenant passer à notre 2e endpoint : la création d'un nouveau jeu.
 
-### Test du endpoint de création d'un jeu [POST]
+### [Test du endpoint de création d'un jeu (POST)](#test-du-endpoint-de-création-dun-jeu-post)
 
 Les différentes valeurs de retour :
 - [200] Renvoie notre jeu de société + envoi de notre message
