@@ -105,128 +105,44 @@ Notre Gherkin ressemblera à ceci :
 
 <script src="https://gist.github.com/sKyoKun/3a54fed2fdbc8ae0427a3d5ab9f37bc9.js"></script>
 
-Nous avons déjà vu les valeurs de retour que nous avons déjà précédemment implémentées. Nous n'allons que rajouter ce dont nous avons besoin pour traiter ces nouvelles étapes.
+Nous avons déjà vu les valeurs de retour que nous avons déjà précédemment implémentées. Nous n'allons que rajouter ce dont nous avons besoin pour traiter ces nouvelles étapes. Tout d'abord, notre requête POST avec un body :
 
 <script src="https://gist.github.com/sKyoKun/ad861b0f1d4606fcf0438238968f0831.js"></script>
 
-```php
-// tests/Behat/SystemContext
-
-...
-
-  public function __construct(
-    private KernelInterface $kernelInterface,
-    private TransportInterface $transport
-    ) {
-  }
-
-  /**
-   * @Then the messenger should contain the following message :
-   */
-  public function theMessengerShouldContainTheFollowingMessage(
-    TableNode $expectedMessageAttributes
-    ): void {
-    /* @var Envelope[] $messagesFromTransport */
-    $messagesFromTransport = $this->transport->get();
-    $messageId = $expectedMessageAttributes->getRowsHash()['message.id'];
-
-    // ici je filtre mes messages grâce à l'ID mais vous pouvez utiliser n'importe quelle valeur unique de votre model
-    $correspondingMessages = array_values(
-      array_filter(
-        $messagesFromTransport, 
-        fn ($enveloppe) => $messageId === $enveloppe->getMessage()->getId();
-      )
-    );
-
-    Assert::assertCount(1, $correspondingMessages);
-    $message = array_shift($correspondingMessages);
-    Assert::assertInstanceOf(Enveloppe::class, $message);
-    $amqpStamp = $message->last(AmqpStamp::class);
-    Assert::assertInstanceOf(AmqpStamp::class, $amqpStamp);
-
-    foreach ($expectedMessageAttributes->getRowsHash() as $name => $value) {
-      // message values
-      if (strstr($name, 'message')) {
-        Assert::assertEquals(
-          $value,
-          (string) $message->getMessage()->{'get' . ucfirst(substr($name, 8))}
-        );
-      }
-      // stamp values (si on rajoute des informations dans les headers AMQP de nos messages, sinon ignorer cette partie)
-      if (strstr($name, 'amqp.')) {
-        // si notre stamp contient des headers
-        if (strstr($name, 'amqp.headers.')) {
-          $headerName = substr($name, 13);
-
-          // on check que le header existe
-          Assert::assertArrayHaskey(
-            $headerName, 
-            $amqpStamp->getAttributes()['headers']
-          );
-
-          // si en plus on veut vérifier sa valeur ...
-          if ('' !== trim($value)) {
-            Assert::assertEquals($value, $amqpStamp->getAttributes()['headers'][$headerName]);
-          } 
-        }else {
-            $attributeName = substr($name, 5);
-
-            Assert::assertArrayHaskey(
-              $attributeName, 
-              $amqpStamp->getAttributes()
-            );
-            if ('' !== trim($value)) {
-            Assert::assertEquals($value, $amqpStamp->getAttributes()[$attributeName]);
-          }
-          }
-        }
-      }
-    }
-  }
-...
-
-```
-
-Configurons notre messenger pour qu'il n'envoie pas de message vers une queue RabbitMQ mais plutot qu'il soit stocké en mémoire
-```yaml
-#config/packages/test/messenger.yaml
-
-framework:
-  messenger:
-    reset_on_message: true
-    transports:
-      game: 'in-memory://'
-```
-
-```yaml
-#config/services_test.yaml
-
-services:
-  App\Tests\Behat\SystemContext:
-    bind:
-      $transport: '@messenger.transport.game'
-    public: true
-```
+Puis la vérification de la présence des données en base. Nous récupérons notre jeu grâce à son titre, puis, grâce au propertyAccessor, nous testons chacune de ses propriétés une par une.
 
 <script src="https://gist.github.com/sKyoKun/28ed4b5d950d773aa51b0fbe5fb9d900.js"></script>
+
+Le plus compliqué est le test du contenu du message et/ou de l'enveloppe, j'ai essayé de détailler au maximum le code pour expliquer la démarche utilisée.
+
+<script src="https://gist.github.com/sKyoKun/86ed575bbf770a596f7ebb95adc0520f.js"></script>
+
+Configurons notre messenger pour qu'il n'envoie pas de message vers une queue RabbitMQ mais plutot qu'il soit stocké en mémoire
+
+<script src="https://gist.github.com/sKyoKun/5dd7cc8463e9093880a3177cdad20492.js"></script>
+
+Enfin, lions notre nouveau transport à notre contexte pour que celui-ci soit utilisé lors de nos tests.
+
+<script src="https://gist.github.com/sKyoKun/0d88be60b5565df141981bf76fabcc1d.js"></script>
 
 ## [Pour aller plus loin](#pour-aller-plus-loin)
 
 ### [Le code coverage](#le-code-coverage)
 
-Le bundle que nous avons installé précémment (composer require --dev dvdoug/behat-code-coverage ) nous permet de bénéficier du code coverage. Pour cela il va analyser toutes les fichiers parcourus par nos tests fonctionnels et déterminer les lignes utiles parcourues et celles qui ne l'ont pas été. 
+Le bundle que nous avons installé précémment (composer require --dev dvdoug/behat-code-coverage ) nous permet de bénéficier du code coverage. Pour cela il va analyser tous les fichiers parcourus par nos tests fonctionnels et déterminer les lignes utiles parcourues et celles qui ne l'ont pas été.
 
-La configuration du bundle doit se faire dans le fichier *behat.yml*. La configuration complete se trouve sur le site internet de l'auteur : [https://behat.cc/en/stable/configuration.html](https://behat.cc/en/stable/configuration.html) 
+La configuration du bundle doit se faire dans le fichier *behat.yml*. La configuration complete se trouve sur le site internet de l'auteur : [https://behat.cc/en/stable/configuration.html](https://behat.cc/en/stable/configuration.html)
 
 Nous allons nous intéresser plus particulièrement aux options d'exclusion de fichiers et aux rapports de couverture. Notre fichier devient donc :
 
 <script src="https://gist.github.com/sKyoKun/8ec998a49bbb27d362f95446a05a6c25.js"></script>
 
-Ici nous avons décidé de ne tester que notre répertoire src/ contenant notre application. Parmi celui-ci, nous avons exclu Kernel car étant un fichier de Symfony, ce n'est pas lui que nous souhaitons couvrir. 
+Ici nous avons décidé de ne tester que notre répertoire src/ contenant notre application. Parmi celui-ci, nous avons exclu Kernel car étant un fichier de Symfony, ce n'est pas lui que nous souhaitons couvrir.
 
 Maintenant que nous avons configuré notre bundle, voyons à quoi ressemblent les sorties :
 ![code coverage text](../img/code_coverage.png?raw=true "Code coverage text")
-Ici nous avons la sortie console. Elle se résume à un récapitulatif des coverages par fichier avec un code couleur :
+
+La sortie console. Elle se résume à un récapitulatif des coverages par fichier avec un code couleur :
 
 - rouge : Pas assez de couverture < 50%
 - jaune : Couverture moyenne 50% < couverture <90%
@@ -234,11 +150,13 @@ Ici nous avons la sortie console. Elle se résume à un récapitulatif des cover
 
 Ces codes paliers sont configurables également grâce au fichier behat.yml
 
-Je trouve les couleurs par fichiers plus pertinentes que le résumé en haut qui peut parfois vraiment faire peur :) 
+Je trouve les couleurs par fichiers plus pertinentes que le résumé en haut qui peut parfois vraiment faire peur :)
 
 L'autre sortie que nous avons configuré est la version HTML. Pour les habitués de PHPUnit, l'interface est identique et permet de s'y retrouver facilement.
 ![code coverage html file list](../img/code_coverage_html.png?raw=true "Code coverage html file list")
 Vous pouvez naviguer de fichiers en fichiers et vérifier les tests qu'il manque pour atteindre les 100% de couverture.
 ![code coverage html file detail](../img/code_coverage_html2.png?raw=true "Code coverage html file detail")
+
+... Ou supprimer des méthodes inutiles pour votre projet (getter/setter dont vous ne vous servez pas, dead code ... )
 
 Note : Pour ceux qui utiliseraient des outils type Sonarqube pour la vérification de leur code, il est tout à fait possible d'exporter les rapports PHPUnit et Behat en clover pour qu'ils soient aggrégés et avoir le "véritable" code coverage de l'ensemble de votre application.
