@@ -1,5 +1,8 @@
 # Tester son API de A à Z grâce à Behat
 
+* TOC
+{:toc}
+
 ## [Connaitre ce que l'on veut tester](#connaitre-ce-que-lon-veut-tester)
 
 Pour mes tests fonctionnels API, je ne voulais pas simplement tester les entrées et sorties des rêquetes, mais TOUT le processus incluant : 
