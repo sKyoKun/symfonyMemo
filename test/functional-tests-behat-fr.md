@@ -160,3 +160,28 @@ Vous pouvez naviguer de fichiers en fichiers et vérifier les tests qu'il manque
 ... Ou supprimer des méthodes inutiles pour votre projet (getter/setter dont vous ne vous servez pas, dead code ... )
 
 Note : Pour ceux qui utiliseraient des outils type Sonarqube pour la vérification de leur code, il est tout à fait possible d'exporter les rapports PHPUnit et Behat en clover pour qu'ils soient aggrégés et avoir le "véritable" code coverage de l'ensemble de votre application.
+
+### [Github actions](#github-actions)
+
+Puisque nous avons désormais de superbes tests fonctionnels, pourquoi ne pas les faire executer par github lors de la soumission des PullRequest ?
+
+Github actions permet de monter des conteneurs pour faire tourner votre code et jouer vos tests.
+
+Pour cela il suffit de créer un dossier *.github/workflows* contenant des fichiers YML correspondants à chacun de vos workflows.
+
+Ici j'ai choisi d'utiliser un workflow qui se déclanche lors de la création (ou modification) d'une PR. Le workflow va :
+
+* Créer un conteneur ubuntu et un conteneur Mysql 5.7
+* Configurer PHP avec la version et les extensions demandées
+* Vérifier que je me connecte bien à la BDD
+* Installer les dépendances via composer
+* Vérifier que le code est propre via un run à blanc de PHP-CS-Fixer
+* Enfin, jouer nos tests unitaires et fonctionnels
+
+<script src="https://gist.github.com/sKyoKun/f7bbefb1e588deef1666701d3c7d4f22.js"></script>
+
+Vous retrouvez le résultat du workflow en bas de votre PR ou dans l'onglet "actions" du repo. Il suffit de cliquer sur un des steps pour en avoir le détail
+
+![github actions PR](../img/github_actions_2.png?raw=true "github actions details")
+
+![github actions details](../img/github_actions.png?raw=true "github actions details")
